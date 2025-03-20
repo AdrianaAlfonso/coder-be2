@@ -1,6 +1,7 @@
 import passport from 'passport';
 import jwt from 'passport-jwt';
-import { getUserById } from '../controllers/userController.js';
+import UserDAO from '../daos/userDAO.js';
+import UserDTO from '../dtos/userDTO.js';
 
 const { Strategy: JWTStrategy, ExtractJwt: ExtractJWT } = jwt;
 
@@ -28,8 +29,8 @@ const initiatePassport = () => {
   });
 
   passport.deserializeUser(async (id, done) => {
-    const user = await getUserById(id);
-    done(null, user);
+    const user = await UserDAO.getUserById(id);
+    done(null, new UserDTO(user));
   });
 };
 

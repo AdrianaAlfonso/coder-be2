@@ -1,20 +1,17 @@
 import { Router } from 'express';
 import {
   createUser,
-  deleteUser,
   getUserById,
   getUsers,
   login,
   updateUser,
 } from '../controllers/userController.js';
 import passportCall from '../middlewares/passportCall.js';
-import authorization from '../middlewares/auth.js';
 
 const userRouter = Router();
 
 userRouter.get('/', passportCall, async (req, res) => {
   try {
-    // solo deberia traer datos de usuarios normales
     const result = await getUsers({ role: 'user' });
     res.status(200).send(result);
   } catch (error) {
@@ -22,31 +19,13 @@ userRouter.get('/', passportCall, async (req, res) => {
   }
 });
 
-// Eliminar un usuario
-userRouter.delete(
-  '/:uid',
-  passportCall,
-  authorization('admin'),
-  async (req, res) => {
-    try {
-      const uid = req.params.uid;
-      const result = await deleteUser(uid);
-      res.status(200).send(result);
-    } catch (error) {
-      res.status(500).send({ message: 'Internal Server Error' });
-    }
-  }
-);
-
 // Actualizar un usuario
 userRouter.put('/:uid', passportCall, async (req, res) => {
   try {
-    if (req.body.role && req.user.role !== 'admin') {
-      return res
-        .status(400)
-        .send({
-          message: 'No tienes permisos para cambiar el ROL de un usuario',
-        });
+    if (req.body.role) {
+      return res.status(400).send({
+        message: 'No tienes permisos para cambiar el ROL de un usuario',
+      });
     }
     const uid = req.params.uid;
     const result = await updateUser(uid, req.body);
@@ -79,17 +58,6 @@ userRouter.post('/register', async (req, res) => {
 userRouter.post('/login', async (req, res) => {
   try {
     const result = await login(req.body);
-    res.status(200).send(result);
-  } catch (error) {
-    res.status(500).send({ message: 'Internal Server Error' });
-  }
-});
-
-// Actualizar un usuario
-userRouter.put('/:uid', passportCall, async (req, res) => {
-  try {
-    const uid = req.params.uid;
-    const result = await updateUser(uid, req.body);
     res.status(200).send(result);
   } catch (error) {
     res.status(500).send({ message: 'Internal Server Error' });
